@@ -2,12 +2,12 @@ def input_students
   puts "Enter student details into the directory here"
   students = []
   loop do
+    print "Add a student? (y/n) "
+    yn_input = gets.chomp
+    break if yn_input.downcase == "n"
     new_student = input_a_student
     students << {:name => new_student[0], :cohort => new_student[1].downcase.to_sym, :hobby => new_student[2]}
     puts "Student added. There #{(sc = students.count) == 1? "is" : "are"} #{sc} student#{sc == 1? "" : "s"} in the directory."
-    print "Add another student? (y/n) "
-    yn_input = gets.chomp
-    break if yn_input.downcase == "n"
   end
   students
 end
@@ -36,7 +36,7 @@ end
 
 def input_student_details(detail, default)
   print "#{detail}: "
-  input = gets.chomp
+  input = gets[0...-1]
   if input.empty?
     return default
   else
@@ -45,7 +45,7 @@ def input_student_details(detail, default)
 end
 
 def print_header
-  puts "The students of Middle Earth School of Performing Arts\n-------------"   
+  puts "-------------\nThe students of Middle Earth School of Performing Arts\n-------------"   
 end
 
 def print_names(students, s_char, u_twelve, by_cohort)
@@ -82,7 +82,7 @@ students = [
     {:name => "Shelob", :cohort => :october, :hobby => "eating"},
     {:name => "Gollum", :cohort => :december, :hobby => "fishing"},
     {:name => "Lurtz", :cohort => :december, :hobby => "jogging"}]
-#students = input_students
+students = input_students
 
 print_header
 print_names(students, "", false, true)
