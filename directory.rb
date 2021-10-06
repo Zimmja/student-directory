@@ -7,6 +7,7 @@ $students = [
     {:name => "Gollum", :cohort => :december, :hobby => "fishing"},
     {:name => "Lurtz", :cohort => :december, :hobby => "jogging"}
     ]
+$students = []
 
 def interactive_menu
   loop do
@@ -17,7 +18,13 @@ end
 
 def print_im
   print_header("directory menu")
-  puts " (0) Reset directory\n (1) Add students to directory\n (2) Remove students from directory\n (3) View list of students\n (4) Save list\n (5) Exit"  
+  puts " (0) Reset directory
+ (1) Add students to directory
+ (2) Remove students from directory
+ (3) View list of students
+ (4) Export list
+ (5) Import list
+ (6) Exit"  
 end
 
 def im_choice(choice)
@@ -27,7 +34,8 @@ def im_choice(choice)
     when "2" then delete_students
     when "3" then view_students
     when "4" then export_list
-    when "5" then return false
+    when "5" then import_list
+    when "6" then return false
   end
 end
 
@@ -136,9 +144,20 @@ end
 def export_list
   print "Export name: "
   export_file = File.open("#{name = gets.chomp}.csv", "w")
-  $students.each { |student| export_file.puts "#{student[:name]}, #{student[:cohort]}" }
+  $students.each { |student| export_file.puts "#{student[:name]}, #{student[:cohort]}, #{student[:hobby]}" }
   export_file.close
   puts "File exported: #{name}.csv\n "
+end
+
+def import_list
+  print "Import file (csv file): "
+  import_file = File.open("#{filename = gets.chomp}.csv", "r")
+  import_file.readlines.each do |line|
+    name, cohort, hobby = line.chomp.split(", ")
+    $students << {:name => name, :cohort => cohort.to_sym, :hobby => hobby}
+  end
+  import_file.close
+  puts "File imported: #{filename}.csv\n "
 end
 
 interactive_menu
