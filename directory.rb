@@ -17,16 +17,17 @@ end
 
 def print_im
   print_header("directory menu")
-  puts " (0) Reset directory\n (1) Add students to directory\n (2) Remove students from directory\n (3) View list of students\n (4) Exit"  
+  puts " (0) Reset directory\n (1) Add students to directory\n (2) Remove students from directory\n (3) View list of students\n (4) Save list\n (5) Exit"  
 end
 
 def im_choice(choice)
   case choice
-     when "0" then input_students(true)
-     when "1" then input_students(false)
-     when "2" then delete_students
-     when "3" then view_students
-     when "4" then return false
+    when "0" then input_students(true)
+    when "1" then input_students(false)
+    when "2" then delete_students
+    when "3" then view_students
+    when "4" then export_list
+    when "5" then return false
   end
 end
 
@@ -132,4 +133,13 @@ def input_student_details(detail, default)
   end
 end
 
+def export_list
+  print "Export name: "
+  export_file = File.open("#{name = gets.chomp}.csv", "w")
+  $students.each { |student| export_file.puts "#{student[:name]}, #{student[:cohort]}" }
+  export_file.close
+  puts "File exported: #{name}.csv\n "
+end
+
 interactive_menu
+
