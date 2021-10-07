@@ -3,7 +3,7 @@ $students = []
 def interactive_menu
   loop do
     print_im
-    break if im_choice(gets.chomp) == false
+    break if im_choice(STDIN.gets.chomp) == false
   end
 end
 
@@ -31,6 +31,7 @@ def im_choice(choice)
 end
 
 def view_students
+  puts "attempt print"
   print_header("list of students")
   print_names($students, "", false, true)
   print_footer($students)  
@@ -41,7 +42,7 @@ def print_header(header)
 end
 
 def print_footer(students)
-  puts "#{directory_count_statement(students)}\nPress ENTER to return to menu"; gets
+  puts "#{directory_count_statement(students)}\nPress ENTER to return to menu"; STDIN.gets
 end
 
 def directory_count_statement(students) # e.g. "There is 1 student in the directory.""
@@ -71,7 +72,7 @@ def delete_students
     s_count = $students.count
     puts "Please enter a student number between 1 and #{s_count} to delete them from the directory\nOR leave blank and press ENTER to return to menu"
     print_names($students, "", false, false)
-    break if delete_choice(gets.chomp, s_count) == false
+    break if delete_choice(STDIN.gets.chomp, s_count) == false
   end 
 end
 
@@ -90,7 +91,7 @@ end
 def add_offer
   loop do
     print "Add a new student? (y/n) "
-    break if add_choice(gets.chomp.downcase) == false
+    break if add_choice(STDIN.gets.chomp.downcase) == false
   end
 end
 
@@ -119,7 +120,7 @@ def input_a_student
     
   print "\nCONFIRM ENTRY (y/n)\nName: #{nam_input}, Cohort: #{coh_input}, Hobby: #{hob_input} "
   loop do
-    break if (choice = gets.chomp.downcase) == "n"
+    break if (choice = STDIN.gets.chomp.downcase) == "n"
     choice == "y" ? (return [nam_input,coh_input,hob_input]) : invalid_yn_choice
   end
 end
@@ -127,14 +128,14 @@ end
 def input_student_details(detail, default)
   loop do
     print "#{detail}#{ "(default: #{default})" if default != "" && default != "none"}: "
-    det_input = gets.chomp
+    det_input = STDIN.gets.chomp
     default == "" && det_input == "" ? (puts "\nYou must enter a #{detail.downcase} for each student.") : (return det_input.empty? ? default : det_input)
   end
 end
 
 def export_list
   print "Export name: "
-  export_file = File.open("#{name = gets.chomp}.csv", "w")
+  export_file = File.open("#{name = STDIN.gets.chomp}.csv", "w")
   $students.each { |student| export_file.puts "#{student[:name]}, #{student[:cohort]}, #{student[:hobby]}" }
   export_file.close
   puts "File exported: #{name}.csv\n "
@@ -142,11 +143,11 @@ end
 
 def import_list(filename=nil)
   print_actions = (filename ? false : true)
-  print "Import file (cohort_[insert].csv): " if print_actions
-  import_file = File.open("cohort_#{filename = (filename ? filename : gets.chomp)}.csv", "r")
+  print "Import file: " if print_actions
+  import_file = File.open("#{filename = (filename ? filename : STDIN.gets.chomp)}", "r")
   import_file_content(import_file.readlines)
   import_file.close
-  puts "File imported: cohort_#{filename}.csv\n " if print_actions
+  puts "File imported: #{filename}\n " if print_actions
 end
 
 def import_file_content(content)
@@ -158,5 +159,12 @@ def import_file_content(content)
   end
 end
 
-import_list("lotr")
+def try_startup_import
+  filename = ARGV[0]
+  return if filename.nil?
+  File.exists?(filename) ? import_list(filename) : exit
+end
+
+import_list("cohort_hp.csv")
+try_startup_import
 interactive_menu
