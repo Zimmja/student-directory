@@ -3,30 +3,30 @@ $students = []
 def interactive_menu
   loop do
     print_im
-    break if im_choice(STDIN.gets.chomp) == false
+    break if im_choice(STDIN.gets.chomp.upcase) == false
   end
 end
 
 def print_im
   print_header("directory menu")
-  puts " (0) Reset directory
- (1) Add students to directory
- (2) Remove students from directory
- (3) View list of students
- (4) Export list
- (5) Import list
- (6) Exit"  
+  puts " (R) Reset directory
+ (A) Add students to directory
+ (D) Delete students from directory
+ (V) View list of students
+ (E) Export list
+ (I) Import list
+ Press ENTER without choosing an option to exit"   
 end
 
 def im_choice(choice)
   case choice
-    when "0" then input_students(true)
-    when "1" then input_students(false)
-    when "2" then delete_students
-    when "3" then view_students
-    when "4" then export_list
-    when "5" then import_list
-    when "6" then return false
+    when "R" then input_students(true)
+    when "A" then input_students(false)
+    when "D" then delete_students
+    when "V" then view_students
+    when "E" then export_list
+    when "I" then import_list
+    when "" then return false
   end
 end
 
@@ -142,12 +142,19 @@ def export_list
 end
 
 def import_list(filename=nil)
-  print_actions = (filename ? false : true)
-  print "Import file: " if print_actions
-  import_file = File.open("#{filename = (filename ? filename : STDIN.gets.chomp)}", "r")
-  import_file_content(import_file.readlines)
-  import_file.close
-  puts "File imported: #{filename}\n " if print_actions
+  filename = check_import(filename)
+  if File.file?(filename)
+    import_file = File.open("#{filename = (filename ? filename : STDIN.gets.chomp)}", "r")
+    import_file_content(import_file.readlines)
+    import_file.close
+  end
+  puts "File imported: #{filename}"
+end
+
+def check_import(filename)
+  return filename if filename
+  print "Import file: "
+  STDIN.gets.chomp
 end
 
 def import_file_content(content)
@@ -162,9 +169,9 @@ end
 def try_startup_import
   filename = ARGV[0]
   return if filename.nil?
-  File.exists?(filename) ? import_list(filename) : exit
+  File.file?(filename) ? import_list(filename) : exit
 end
 
-import_list("cohort_hp.csv")
+#import_list("cohort_hp.csv")
 try_startup_import
 interactive_menu
