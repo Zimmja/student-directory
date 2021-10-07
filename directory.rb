@@ -141,14 +141,19 @@ def export_list
   puts "File exported: #{name}.csv\n "
 end
 
-def import_list(filename=nil)
+def try_startup_import(is_csv=false)
+  filename = (ARGV[0].nil? ? "cohort_hp.csv" : ARGV[0]) # default added
+  import_list(filename, is_csv) if File.file?(filename)
+end
+
+def import_list(filename=nil, is_csv)
   filename = check_import(filename)
   if File.file?(filename)
-    import_file = File.open("#{filename = (filename ? filename : STDIN.gets.chomp)}", "r")
-    import_file_content(import_file.readlines)
-    import_file.close
+    is_csv ? import_file_content(CSV.foreach(filename), true) : File.open("#{filename}", "r") { |file| import_file_content(file.readlines) }
+    puts "File imported#{is_csv ? " (csv)" : ""}: #{filename}"
+  else
+    puts "ERROR: file not found"
   end
-  puts "File imported: #{filename}"
 end
 
 def check_import(filename)
@@ -157,21 +162,19 @@ def check_import(filename)
   STDIN.gets.chomp
 end
 
-def import_file_content(content)
+def import_file_content(content, is_csv=false)
   content.each_with_index do |line, i|
     if i != 0
-      name, hobby = line.chomp.split(", ")
-      $students << {:name => name, :cohort => content[0].chomp.to_sym, :hobby => hobby}
+      name, hobby = (is_csv ? line : line.chomp.split(","))
+      $students << {:name => name, :cohort => (is_csv ? content.first[0] : content[0].chomp).to_sym, :hobby => hobby}
     end
   end
 end
 
-def try_startup_import
-  filename = ARGV[0]
-  return if filename.nil?
-  File.file?(filename) ? import_list(filename) : exit
-end
-
-#import_list("cohort_hp.csv")
-try_startup_import
+require "csv"
+try_startup_import(true)
 interactive_menu
+
+# Added a default import list for start-up
+# Refactored import process
+# Added csv
