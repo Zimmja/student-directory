@@ -62,7 +62,7 @@ def print_names_by_cohort(students)
 end
 
 def print_names_by_list(students)
-  students.each_with_index { |s, i| puts "  #{i+1}. #{s[:name]}, cohort: #{s[:cohort].capitalize}. Hobby: #{s[:hobby]}" }
+  (students.map { |s| "#{s[:name]}, cohort: #{s[:cohort].capitalize}. Hobby: #{s[:hobby]}" }).sort.each_with_index { |st, i| puts "  #{i+1}. #{st}" }
 end
 
 def delete_students
