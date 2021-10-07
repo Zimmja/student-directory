@@ -15,6 +15,7 @@ def print_im
  (V) View list of students
  (E) Export list
  (I) Import list
+ (S) Source code
  Press ENTER without choosing an option to exit"   
 end
 
@@ -26,6 +27,7 @@ def im_choice(choice)
     when "V" then view_students
     when "E" then export_list
     when "I" then import_list
+    when "S" then view_source
     when "" then return false
   end
 end
@@ -171,10 +173,10 @@ def import_file_content(content, is_csv=false)
   end
 end
 
+def view_source
+  File.open(__FILE__, "r") { |file| file.readlines.each { |x| puts x } }
+end
+
 require "csv"
 try_startup_import(true)
 interactive_menu
-
-# Added a default import list for start-up
-# Refactored import process
-# Added csv
