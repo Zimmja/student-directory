@@ -1,12 +1,3 @@
-$students = [
-    {:name => "Sauron", :cohort => :october, :hobby => "domination"},
-    {:name => "Sauruman", :cohort => :october, :hobby => "power"},
-    {:name => "Durin's Bane", :cohort => :october, :hobby => "napping"},
-    {:name => "Grima Wormtongue", :cohort => :december, :hobby => "lechery"},
-    {:name => "Shelob", :cohort => :october, :hobby => "eating"},
-    {:name => "Gollum", :cohort => :december, :hobby => "fishing"},
-    {:name => "Lurtz", :cohort => :december, :hobby => "jogging"}
-    ]
 $students = []
 
 def interactive_menu
@@ -65,7 +56,7 @@ end
 
 def print_names_by_cohort(students)
   (students.map { |s| s[:cohort] }.uniq).each do |cohort|
-    puts "#{cohort.to_s.capitalize} cohort:"
+    puts "#{cohort.to_s} cohort:"
     students.select { |s| s[:cohort] == cohort }.each_with_index { |x, i| puts "  #{i+1}. #{x[:name]}" }
   end
 end
@@ -114,7 +105,7 @@ end
 
 def add_student_to_directory
   if new_student = input_a_student
-    $students << {:name => new_student[0], :cohort => new_student[1].downcase.to_sym, :hobby => new_student[2]}
+    $students << {:name => new_student[0], :cohort => new_student[1].upcase.to_sym, :hobby => new_student[2]}
     puts "\nStudent added. #{directory_count_statement($students)}\n "
   else
     puts "\nInput cancelled. #{directory_count_statement($students)}\n "
@@ -150,14 +141,20 @@ def export_list
 end
 
 def import_list
-  print "Import file (csv file): "
-  import_file = File.open("#{filename = gets.chomp}.csv", "r")
-  import_file.readlines.each do |line|
-    name, cohort, hobby = line.chomp.split(", ")
-    $students << {:name => name, :cohort => cohort.to_sym, :hobby => hobby}
-  end
+  print "Import file (cohort_[insert].csv): "
+  import_file = File.open("cohort_#{filename = gets.chomp}.csv", "r")
+  import_file_content(import_file.readlines)
   import_file.close
-  puts "File imported: #{filename}.csv\n "
+  puts "File imported: cohort_#{filename}.csv\n "
+end
+
+def import_file_content(content)
+  content.each_with_index do |line, i|
+    if i != 0
+      name, hobby = line.chomp.split(", ")
+      $students << {:name => name, :cohort => content[0].chomp.to_sym, :hobby => hobby}
+    end
+  end
 end
 
 interactive_menu
