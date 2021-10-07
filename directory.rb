@@ -140,12 +140,13 @@ def export_list
   puts "File exported: #{name}.csv\n "
 end
 
-def import_list
-  print "Import file (cohort_[insert].csv): "
-  import_file = File.open("cohort_#{filename = gets.chomp}.csv", "r")
+def import_list(filename=nil)
+  print_actions = (filename ? false : true)
+  print "Import file (cohort_[insert].csv): " if print_actions
+  import_file = File.open("cohort_#{filename = (filename ? filename : gets.chomp)}.csv", "r")
   import_file_content(import_file.readlines)
   import_file.close
-  puts "File imported: cohort_#{filename}.csv\n "
+  puts "File imported: cohort_#{filename}.csv\n " if print_actions
 end
 
 def import_file_content(content)
@@ -157,5 +158,5 @@ def import_file_content(content)
   end
 end
 
+import_list("lotr")
 interactive_menu
-
