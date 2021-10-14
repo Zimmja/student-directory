@@ -1,8 +1,5 @@
-=begin
-Delete students: added a method to alphabetically sort the student list; fixed error causing wrong deletion from $students global; added notes
-=end
-
 $students = []
+$cohorts = []
 
 #----------------------------------------
 # INTERACTIVE MENU 
@@ -15,8 +12,9 @@ end
 
 def im_show_options
   print_header("directory menu")
-  puts " (V) View list of students
- (A) Add students to directory
+  puts " (V) List students
+ (A) Add students to cohort
+ (C) Add cohort to directory
  (D) Delete students from directory
  (E) Export list
  (I) Import list
@@ -27,6 +25,7 @@ end
 def im_choice(choice)
   case choice
     when "A" then input_students
+    when "C" then choice_add_cohort
     when "D" then choice_delete_students
     when "V" then choice_view_students
     when "E" then export_list
@@ -77,10 +76,11 @@ def print_names(students, by_cohort=true, s_char="", u_twelve=false)
 end
 
 def print_names_by_cohort(students)
-  cohorts = students.map { |s| s[:cohort] }.uniq # Returns an array listing all the unique cohorts
-  cohorts.each do |cohort|
+  update_cohorts
+  $cohorts.each do |cohort|
     puts "#{cohort.to_s} cohort:"
-    students.select { |s| s[:cohort] == cohort }.each_with_index { |x, i| puts "  #{i+1}. #{x[:name]}" } # For each cohort, selects students in that cohort, and puts a list of them
+    cohort_students = students.select { |s| s[:cohort] == cohort } # Creates a list of students in the cohort
+    cohort_students.count == 0 ? (puts "  This cohort is empty") : cohort_students.each_with_index { |x, i| puts "  #{i+1}. #{x[:name]}" }
   end
 end
 
@@ -92,17 +92,24 @@ def sort_students # Sorts the $students global into alphabetical order
   $students.sort_by! { |student| student[:name]}
 end
 
+def update_cohorts
+  student_cohorts = ($students.map { |s| s[:cohort] }).uniq # Returns an array listing all cohorts contained in the hashes within $students
+  $cohorts << student_cohorts
+  $cohorts.flatten!
+  $cohorts.uniq!
+end
+
 #----------------------------------------
 # DELETE STUDENTS
 #----------------------------------------
 
 def choice_delete_students
-  print_header("remove from directory")
+  print_header("delete students from directory")
   loop do
     s_count = $students.count
     puts "Please enter a student number between 1 and #{s_count} to delete them from the directory\nOR leave blank and press ENTER to return to menu"
     print_names($students, false) # This uses the function from the VIEWING STUDENTS section, but with a false second parameter
-    break if check_delete_choice(STDIN.gets.chomp, s_count) == false # Call delete_choice, and breaks this loop if the method returns false (i.e. no students chosen for deletion)
+    break if check_delete_choice(STDIN.gets.chomp, s_count) == false # Call check_delete_choice, and breaks this loop if the method returns false (i.e. no students chosen for deletion)
   end 
 end
 
@@ -117,6 +124,32 @@ def delete_student(i)
   sort_students
   puts "\n#{$students[i][:name]} removed from directory\n "
   $students.delete_at(i)
+end
+
+#----------------------------------------
+# ADD COHORT
+#----------------------------------------
+
+def choice_add_cohort
+  update_cohorts # Double-check the cohorts are up to date
+  print_header("add cohort to directory")
+  loop do
+    puts "Cohorts:"
+    $cohorts.each_with_index {|c, i| puts "  #{i+1}. #{ c}"}
+    puts "Enter a new cohort below\nOR leave blank and press ENTER to return to menu"
+    break if check_cohort_choice(STDIN.gets.chomp) == false # Call check_cohort_choice, and breaks this loop if the method returns false (i.e. no new cohorts added)
+  end
+end
+
+def check_cohort_choice(choice)
+  return false if choice == ""
+  $cohorts.include?(choice.to_sym) ? invalid_input("There is already a cohort named '#{choice}'") : confirm_cohort_choice(choice)
+end
+
+def confirm_cohort_choice(choice)
+  puts "\nAre you sure you want to add a new cohort named '#{choice}'?\nEnter 'n' to cancel, or press any other key to confirm."
+  confirmed = STDIN.gets.chomp.downcase != "n"
+  $cohorts << choice.to_sym if confirmed
 end
 
 #----------------------------------------
