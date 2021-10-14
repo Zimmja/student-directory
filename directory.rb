@@ -1,16 +1,22 @@
+=begin
+- Notes added
+- Functions renamed to be more descriptive
+- Remove option to reset directory (not required)
+- Error message added when an invalid choice is made from the IM
+- Remade the IM loop
+=end
+
 $students = []
 
-def interactive_menu
-  loop do
-    print_im
-    break if im_choice(STDIN.gets.chomp.upcase) == false
-  end
+def interactive_menu # This menu will continue to loop until a blank choice is selected.
+  im_show_options
+  im_chose_something = im_choice(STDIN.gets.chomp.upcase)
+  interactive_menu if im_chose_something # Run this method again if user entered anything other than a blank choice
 end
 
-def print_im
+def im_show_options
   print_header("directory menu")
-  puts " (R) Reset directory
- (A) Add students to directory
+  puts " (A) Add students to directory
  (D) Delete students from directory
  (V) View list of students
  (E) Export list
@@ -21,15 +27,20 @@ end
 
 def im_choice(choice)
   case choice
-    when "R" then input_students(true)
-    when "A" then input_students(false)
+    when "A" then input_students
     when "D" then delete_students
     when "V" then view_students
     when "E" then export_list
     when "I" then import_list
     when "S" then view_source
     when "" then return false
+    else invalid_input("Please choose from the listed options")
   end
+  return true # Returns true to signal that a choice was made
+end
+
+def invalid_input(to_do)
+  puts "\nERROR: INVALID INPUT. #{to_do}.\n "
 end
 
 def view_students
@@ -40,7 +51,7 @@ def view_students
 end
 
 def print_header(header)
-  puts "#{"-"*40}\n#{header.upcase}\n#{"-"*40}"   
+  puts "#{dashes = "-"*40}\n#{header.upcase}\n#{dashes}"   
 end
 
 def print_footer(students)
@@ -84,9 +95,9 @@ def delete_choice(choice, s_count)
   $students.delete_at(choice_i) if valid
 end
 
-def input_students(reset)
-  print_header(reset ? "reset directory" : "add to directory")
-  puts directory_count_statement($students = (reset ? [] : $students))
+def input_students
+  print_header("add to directory")
+  puts directory_count_statement($students)
   add_offer
 end
 
