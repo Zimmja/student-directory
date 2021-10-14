@@ -13,8 +13,8 @@ end
 def im_show_options
   print_header("directory menu")
   puts " (V) List students
- (A) Add students to cohort
  (C) Add cohort to directory
+ (A) Add students to cohort
  (D) Delete students from directory
  (E) Export list
  (I) Import list
@@ -24,7 +24,7 @@ end
 
 def im_choice(choice)
   case choice
-    when "A" then input_students
+    when "A" then choice_add_students
     when "C" then choice_add_cohort
     when "D" then choice_delete_students
     when "V" then choice_view_students
@@ -95,8 +95,7 @@ end
 def update_cohorts
   student_cohorts = ($students.map { |s| s[:cohort] }).uniq # Returns an array listing all cohorts contained in the hashes within $students
   $cohorts << student_cohorts
-  $cohorts.flatten!
-  $cohorts.uniq!
+  $cohorts = $cohorts.flatten.uniq.sort
 end
 
 #----------------------------------------
@@ -131,14 +130,18 @@ end
 #----------------------------------------
 
 def choice_add_cohort
-  update_cohorts # Double-check the cohorts are up to date
   print_header("add cohort to directory")
   loop do
-    puts "Cohorts:"
-    $cohorts.each_with_index {|c, i| puts "  #{i+1}. #{ c}"}
+    list_cohorts
     puts "Enter a new cohort below\nOR leave blank and press ENTER to return to menu"
     break if check_cohort_choice(STDIN.gets.chomp) == false # Call check_cohort_choice, and breaks this loop if the method returns false (i.e. no new cohorts added)
   end
+end
+
+def list_cohorts
+  puts "Cohorts:"
+  update_cohorts # Double-check the cohorts are up to date
+  $cohorts.each_with_index {|c, i| puts "  #{i+1}. #{ c}"}
 end
 
 def check_cohort_choice(choice)
@@ -156,56 +159,48 @@ end
 # ADD STUDENTS
 #----------------------------------------
 
-def input_students
-  print_header("add to directory")
-  puts directory_count_statement($students)
-  add_offer
-end
-
-def add_offer
+def choice_add_students
+  print_header("add students to cohort")
+  puts directory_count_statement
   loop do
-    print "Add a new student? (y/n) "
-    break if add_choice(STDIN.gets.chomp.downcase) == false
+    list_cohorts
+    puts "Choose which cohort number to add a student to\nOR leave blank and press ENTER to return to menu"
+    break if check_add_choice(STDIN.gets.chomp, $cohorts.count) == false # Call check_add_choice, and breaks this loop if the method returns false (i.e. no cohort chosen)
   end
 end
 
-def add_choice(choice)
-  return false if choice == "n"
-  choice == "y" ? add_student_to_directory : invalid_yn_choice
+def check_add_choice(choice, c_count)
+  return false if choice == "" 
+  choice_i = choice.to_i - 1 # e.g. If choosing "1.", the index we'll need to delete is 0
+  valid_choice = (0...c_count).include?(choice_i) # True if the chosen number is between 1 and the number of cohorts in the directory
+  valid_choice ? add_to_cohort(choice_i) : invalid_input("Please choose a number between 1 and #{c_count}")
 end
 
-def invalid_yn_choice
-  puts "ERROR: invalid input. Please choose 'y' or 'n'"
+def add_to_cohort(i)
+  puts "\nInput students details here: "
+  name_input = input_student_details("Name")
+  rating_input = input_student_details("Hobby")
+
+  puts "\nPLEASE CONFIRM: add #{name_input} to the #{$cohorts[i].to_s} cohort?\nEnter 'n' to cancel, or press any other key to confirm."
+  confirmed = STDIN.gets.chomp.downcase != "n"
+  $students << {:name => name_input, :cohort => $cohorts[i], :hobby => rating_input} if confirmed
 end
 
-def add_student_to_directory
-  if new_student = input_a_student
-    $students << {:name => new_student[0], :cohort => new_student[1].upcase.to_sym, :hobby => new_student[2]}
-    puts "\nStudent added. #{directory_count_statement($students)}\n "
-  else
-    puts "\nInput cancelled. #{directory_count_statement($students)}\n "
-  end
-end
-
-def input_a_student
-  nam_input = input_student_details("Name", "")
-  coh_input = input_student_details("Cohort", "October")
-  hob_input = input_student_details("Hobby", "none")
-    
-  print "\nCONFIRM ENTRY (y/n)\nName: #{nam_input}, Cohort: #{coh_input}, Hobby: #{hob_input} "
+def input_student_details(detail, default=nil)
   loop do
-    break if (choice = STDIN.gets.chomp.downcase) == "n"
-    choice == "y" ? (return [nam_input,coh_input,hob_input]) : invalid_yn_choice
+    print "#{detail}#{ "(default: #{default})" if default != nil && default != "none"}: " # Prints the name of the detail (e.g. "name") that needs to be entered, and a default value if there is one
+    detail_input = STDIN.gets.chomp
+    if default == nil && detail_input == "" # If there's no default and nothing was entered...
+      puts "\nYou must enter a #{detail.downcase} for each student." # ...keep asking for one to be entered.
+    else
+      return detail_input.empty? ? default : detail_input # Otherwise, break the cycle and return the input (returning default value if the input is empty)
+    end
   end
 end
 
-def input_student_details(detail, default)
-  loop do
-    print "#{detail}#{ "(default: #{default})" if default != "" && default != "none"}: "
-    det_input = STDIN.gets.chomp
-    default == "" && det_input == "" ? (puts "\nYou must enter a #{detail.downcase} for each student.") : (return det_input.empty? ? default : det_input)
-  end
-end
+#----------------------------------------
+
+
 
 def export_list
   print "Export name: "
