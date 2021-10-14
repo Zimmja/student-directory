@@ -1,9 +1,5 @@
 =begin
-- List re-ordered by usefulness
-- print_footer and directory_count_statement: local variable replaced with global
-- print_names default paratmeters set; notes added
-- labels for the menu, generic messages and viewing students added; methods reorganised accordingly
-- notes added to viewing
+Delete students: added a method to alphabetically sort the student list; fixed error causing wrong deletion from $students global; added notes
 =end
 
 $students = []
@@ -31,8 +27,8 @@ end
 def im_choice(choice)
   case choice
     when "A" then input_students
-    when "D" then delete_students
-    when "V" then view_students
+    when "D" then choice_delete_students
+    when "V" then choice_view_students
     when "E" then export_list
     when "I" then import_list
     when "S" then view_source
@@ -67,13 +63,14 @@ end
 # VIEWING STUDENTS
 #----------------------------------------
 
-def view_students
+def choice_view_students
   print_header("list of students")
   print_names($students)
   print_footer
 end
 
 def print_names(students, by_cohort=true, s_char="", u_twelve=false)
+  sort_students
   students.select! { |s| s[:name].chr.downcase == s_char.downcase } if s_char != "" # If s_char is specified, proceeds only with students whose name begins with s_char
   students.select! { |s| s[:name].size < 12 } if u_twelve # If u_twelve is true, proceeds only with students whose names are less that 12 characters
   by_cohort ? print_names_by_cohort(students) : print_names_by_list(students)
@@ -91,21 +88,40 @@ def print_names_by_list(students)
   (students.map { |s| "#{s[:name]}, cohort: #{s[:cohort]}. Hobby: #{s[:hobby]}" }).sort.each_with_index { |st, i| puts "  #{i+1}. #{st}" } # An alphabetical list of students, with cohort and hobbies listed
 end
 
-def delete_students
+def sort_students # Sorts the $students global into alphabetical order
+  $students.sort_by! { |student| student[:name]}
+end
+
+#----------------------------------------
+# DELETE STUDENTS
+#----------------------------------------
+
+def choice_delete_students
   print_header("remove from directory")
   loop do
     s_count = $students.count
     puts "Please enter a student number between 1 and #{s_count} to delete them from the directory\nOR leave blank and press ENTER to return to menu"
-    print_names($students, "", false, false)
-    break if delete_choice(STDIN.gets.chomp, s_count) == false
+    print_names($students, false) # This uses the function from the VIEWING STUDENTS section, but with a false second parameter
+    break if check_delete_choice(STDIN.gets.chomp, s_count) == false # Call delete_choice, and breaks this loop if the method returns false (i.e. no students chosen for deletion)
   end 
 end
 
-def delete_choice(choice, s_count)
+def check_delete_choice(choice, s_count)
   return false if choice == ""
-  puts (valid = (0...s_count).include?(choice_i = choice.to_i - 1)) ? "\n#{$students[choice_i][:name]} removed from directory\n " : "\nERROR: invalid input." 
-  $students.delete_at(choice_i) if valid
+  choice_i = choice.to_i - 1 # e.g. If choosing student "1.", the index we'll need to delete is 0
+  valid_choice = (0...s_count).include?(choice_i) # True if the chosen number is between 1 and the number of students in the directory
+  valid_choice ? delete_student(choice_i) : invalid_input("Please choose a number between 1 and #{s_count}")
 end
+
+def delete_student(i)
+  sort_students
+  puts "\n#{$students[i][:name]} removed from directory\n "
+  $students.delete_at(i)
+end
+
+#----------------------------------------
+# ADD STUDENTS
+#----------------------------------------
 
 def input_students
   print_header("add to directory")
