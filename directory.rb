@@ -1,6 +1,3 @@
-# Export format updated to be consistent with import
-# Refactored cohort listing
-
 $students = []
 $cohorts = []
 
@@ -32,7 +29,7 @@ def im_choice(choice)
     when "D" then choice_delete_students
     when "V" then choice_view_students
     when "E" then choice_export
-    when "I" then import_list
+    when "I" then choice_import
     when "S" then view_source
     when "" then return false
     else invalid_input("Please choose from the listed options")
@@ -227,8 +224,8 @@ def export_cohort(i)
     export_file.puts chosen_cohort
     cohort_students = get_cohort_students($students, $cohorts[i])
     if cohort_students.count == 0
-      puts "\nEXPORT CANCELLED: cannot export an empty cohort\n "
       delete_file = true
+      puts "\nEXPORT CANCELLED: cannot export an empty cohort\n "
     else
       cohort_students.each{ |s| export_file.puts "#{s[:name]},#{s[:hobby]}," }
       puts "\nEXPORT SUCCESSFULL: cohort_#{chosen_cohort}.csv\n "
@@ -237,19 +234,19 @@ def export_cohort(i)
   File.delete("cohort_#{chosen_cohort}.csv") if delete_file
 end
 
-
-
-
+#----------------------------------------
+# IMPORT COHORT
+#----------------------------------------
 
 def try_startup_import(is_csv=false)
-  filename = (ARGV[0].nil? ? "cohort_hp.csv" : ARGV[0]) # default added
-  import_list(filename, is_csv) if File.file?(filename)
+  filename = (ARGV[0].nil? ? "cohort_hp.csv" : ARGV[0]) # Chooses the starting argument passed to ARGV, or cohort_hp.csv if nothing was passed to ARGV
+  choice_import(filename, is_csv) if File.file?(filename) # Checks to see if the file exists, imports it if so
 end
 
-def import_list(filename=nil, is_csv)
-  filename = check_import(filename)
+def choice_import(filename=nil, is_csv=true)
+  filename = check_import(filename) # Filename is filled if called from try_startup_import, otherwise it's empty. Fill state is checked here
   if File.file?(filename)
-    is_csv ? import_file_content(CSV.foreach(filename), true) : File.open("#{filename}", "r") { |file| import_file_content(file.readlines) }
+    is_csv ? import_file_content(CSV.foreach(filename), true) : File.open("#{filename}", "r") { |file| import_file_content(file.readlines) } # Sends an array of lines in file to import_file_content
     puts "File imported#{is_csv ? " (csv)" : ""}: #{filename}"
   else
     puts "ERROR: file not found"
@@ -257,7 +254,7 @@ def import_list(filename=nil, is_csv)
 end
 
 def check_import(filename)
-  return filename if filename
+  return filename if filename # Returns filename if it's filled, otherwise returns a chomp string
   print "Import file: "
   STDIN.gets.chomp
 end
