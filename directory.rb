@@ -115,11 +115,15 @@ def choice_delete_students
   end 
 end
 
-def check_delete_choice(choice, s_count)
-  return false if choice == ""
-  choice_i = choice.to_i - 1 # e.g. If choosing student "1.", the index we'll need to delete is 0
-  valid_choice = (0...s_count).include?(choice_i) # True if the chosen number is between 1 and the number of students in the directory
-  valid_choice ? delete_student(choice_i) : invalid_input("Please choose a number between 1 and #{s_count}")
+def check_delete_choice(choice, c_count) 
+  check_list_choice(choice, c_count) {|c| delete_student(c)} 
+end
+
+def check_list_choice(choice, i_count)
+  return false if choice == "" 
+  choice_i = choice.to_i - 1 # e.g. If choosing "1.", the index we'll need to delete is 0
+  valid_choice = (0...i_count).include?(choice_i) # True if the chosen number is between 1 and the number of cohorts in the directory
+  valid_choice ? yield(choice_i) : invalid_input("Please choose a number between 1 and #{i_count}")
 end
 
 def delete_student(i)
@@ -171,11 +175,8 @@ def choice_add_students
   handle_cohort_choice("Choose which cohort to add a student to") {check_add_choice(STDIN.gets.chomp, $cohorts.count)}
 end
 
-def check_add_choice(choice, c_count)
-  return false if choice == "" 
-  choice_i = choice.to_i - 1 # e.g. If choosing "1.", the index we'll need to delete is 0
-  valid_choice = (0...c_count).include?(choice_i) # True if the chosen number is between 1 and the number of cohorts in the directory
-  valid_choice ? add_to_cohort(choice_i) : invalid_input("Please choose a number between 1 and #{c_count}")
+def check_add_choice(choice, c_count) 
+  check_list_choice(choice, c_count) {|c| add_to_cohort(c)} 
 end
 
 def add_to_cohort(i)
@@ -209,11 +210,8 @@ def choice_export
   handle_cohort_choice("Choose which cohort to export") {check_export_choice(STDIN.gets.chomp, $cohorts.count)}
 end
 
-def check_export_choice(choice, c_count)
-  return false if choice == "" 
-  choice_i = choice.to_i - 1 # e.g. If choosing "1.", the index we'll need to delete is 0
-  valid_choice = (0...c_count).include?(choice_i) # True if the chosen number is between 1 and the number of cohorts in the directory
-  valid_choice ? export_cohort(choice_i) : invalid_input("Please choose a number between 1 and #{c_count}")
+def check_export_choice(choice, c_count) 
+  check_list_choice(choice, c_count) {|c| export_cohort(c)} 
 end
 
 def export_cohort(i)
@@ -268,9 +266,17 @@ def import_file_content(content, is_csv=false)
   end
 end
 
+#----------------------------------------
+# VIEW SOURCE
+#----------------------------------------
+
 def view_source
   File.open(__FILE__, "r") { |file| file.readlines.each { |x| puts x } }
 end
+
+#----------------------------------------
+# RUNNING CODE
+#----------------------------------------
 
 require "csv"
 try_startup_import(true)
